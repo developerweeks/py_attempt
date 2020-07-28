@@ -16,8 +16,8 @@ screen = pygame.display.set_mode((2*screenWidth,2*screenHeight))
 
 
 # Sound
-mixer.music.load("zelda_chill.wav")
-mixer.music.play(-1)
+#mixer.music.load("zelda_chill.wav")
+#mixer.music.play(-1)
 
 # title and icon
 pygame.display.set_caption('The village')
@@ -41,7 +41,7 @@ tileX = [] # left-right
 tileY = [] # up-down
 tileZ = [] # type
 tileCount = 8
-Tselected = -1
+Tselected = False
 
 # range is 0-indexed
 for i in range(tileCount):
@@ -83,7 +83,7 @@ def isCollision(enemyX, enemyY, bulletX, bulletY):
 # main game loop
 running = True
 while running:
-    # solid background color
+    # solid background color, we draw this first so other things go on top
     screen.fill((171, 205, 239))
     # Background Image
     #screen.blit(background, (0, 0))
@@ -96,6 +96,8 @@ while running:
         # if keystroke is pressed, respond
         # wow this list is getting really long
         if event.type == pygame.KEYDOWN:
+            if event.key in [pygame.K_q, pygame.K_x, pygame.K_v, pygame.K_SPACE]:
+                print(event.key)
             if event.key == pygame.K_q:
                 running = False
             #print(event.key)
@@ -119,6 +121,7 @@ while running:
                 viewpointStep = viewpointStep - 1
             # select a tile and open them menu
             if event.key == pygame.K_SPACE:
+                print('which? '+ str(viewpointX) +' '+ str(viewpointY))
                 # select the tile currently viewed at (screenWidth, screenHeight)
                 for i in range(tileCount):
                     tx = tileX[i]+viewpointX
@@ -126,7 +129,32 @@ while running:
                     collision = isCollision(tx, ty, screenWidth, screenHeight)
                     if collision:
                         Tselected = i
-                pass
+                        print(i)
+
+            # the menu parts for the selected tile
+            if event.key == pygame.K_x:
+                Tselected = 'x'
+                # exit the menu
+            # actions on the tile require a title be selected
+            if type(Tselected) == 'int':
+                if event.key == pygame.K_v:
+                    tx = tileX[Tselected] = screenWidth - viewpointX
+                    ty = tileY[Tselected] = screenHeight - viewpointY
+
+        if type(Tselected) == 'int':
+            # sometile is selected, keep the options open
+            tx = tileX[Tselected]+viewpointX
+            ty = tileY[Tselected]+viewpointY
+            ttype = tileZ[Tselected]
+            screen.blit(pygame.image.load('focus.png'), (tx, ty))
+            swrite('x: close menu', 30, 45)
+            swrite('v: move', 30, 80)
+            swrite('f: fortify', 30, 115)
+            if tileZ[Tselected] == 0:
+                # a crop/pasture field
+                swrite('e: train', 30, 150)
+
+
 
         if event.type == pygame.KEYUP:
             viewslide = {'x': 0, 'y': 0}
